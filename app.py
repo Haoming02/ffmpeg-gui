@@ -1,11 +1,10 @@
-'''https://customtkinter.tomschimansky.com/documentation/packaging'''
 import customtkinter as ctk
 from pathlib import Path
 import subprocess
 
 
 # ===== CTK Visual =====
-ctk.set_default_color_theme('blue')
+ctk.set_default_color_theme('green')
 ctk.set_appearance_mode('dark')
 
 
@@ -14,7 +13,7 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title('FFmpeg GUI')
-        self.geometry('600x340')
+        self.geometry('720x360')
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -35,13 +34,15 @@ class Frame(ctk.CTkFrame):
 
 # ===== General App Init =====
 app = App()
+app.after(64, lambda : app.iconbitmap('icon.ico'))
+
 frame = Frame(app)
 
 title = ctk.CTkLabel(frame, text='FFmpeg GUI', font=('Segoe UI', 20))
 title.grid(row=0, column=1, columnspan=2, padx=8, pady=8, sticky='ew')
 
-author = ctk.CTkLabel(frame, text='by. Haoming', text_color='grey')
-author.grid(row=0, column=3, padx=8, pady=8, sticky='ew')
+author = ctk.CTkLabel(frame, text='by. Haoming', text_color='grey', anchor='ne')
+author.grid(row=0, column=3, padx=12, pady=8, sticky='ew')
 
 
 # ===== Input Path =====
@@ -64,7 +65,7 @@ def set_input():
 open_btn1 = ctk.CTkButton(input_frame, text='📂', width=60, command=set_input)
 open_btn1.grid(row=0, column=0, padx=4, pady=4, sticky='w')
 
-input_label = ctk.CTkLabel(input_frame, text='Input: ')
+input_label = ctk.CTkLabel(input_frame, text='Input: ', anchor='e')
 input_label.grid(row=0, column=1, padx=4, pady=4, sticky='w')
 
 
@@ -75,7 +76,7 @@ output_frame.grid(row=2, column=0, padx=8, pady=8, sticky='ew')
 output_frame.grid_columnconfigure(0, weight=1)
 output_frame.grid_columnconfigure(1, weight=1)
 
-output_entry = ctk.CTkEntry(frame, placeholder_text='Path to Output Folder (Leave empty to write next to the program)')
+output_entry = ctk.CTkEntry(frame, placeholder_text='Path to Output Folder (Leave empty to write in working directory)')
 output_entry.grid(row=2, column=1, columnspan=3, padx=8, pady=8, sticky='ew')
 
 def set_output():
@@ -88,7 +89,7 @@ def set_output():
 open_btn1 = ctk.CTkButton(output_frame, text='📂', width=60, command=set_output)
 open_btn1.grid(row=0, column=0, padx=4, pady=4, sticky='w')
 
-output_label = ctk.CTkLabel(output_frame, text='Output: ')
+output_label = ctk.CTkLabel(output_frame, text='Output: ', anchor='e')
 output_label.grid(row=0, column=1, padx=4, pady=4, sticky='w')
 
 
@@ -181,8 +182,26 @@ custom_entry.grid(row=6, column=1, columnspan=2, padx=8, pady=(2, 8), sticky='ew
 
 # ===== Progress Bar =====
 progressbar = ctk.CTkProgressBar(frame, orientation="horizontal")
-progressbar.grid(row=7, column=0, columnspan=4, padx=8, pady=4, sticky='ew')
+progressbar.grid(row=7, column=0, columnspan=4, padx=8, pady=(24, 2), sticky='ew')
 progressbar.set(0.0)
+
+
+# ===== Interrupt Handle =====
+run_btn = None
+stop_btn = None
+should_stop = False
+
+def on_stop():
+    global should_stop
+    should_stop = True
+
+def show_stop():
+    run_btn.grid_forget()
+    stop_btn.grid(row=5, rowspan=2, column=3, padx=8, pady=8, sticky='sen')
+
+def show_run():
+    stop_btn.grid_forget()
+    run_btn.grid(row=5, rowspan=2, column=3, padx=8, pady=8, sticky='sen')
 
 
 # ===== Main Function =====
@@ -198,6 +217,9 @@ def RUN():
     if not output_path.is_dir():
         print('\n[Error] Invalid Output Path...')
         return
+
+    show_stop()
+    app.update()
 
     cv = codec_optionMenu.get()
     vp = quality_optionMenu.get()
@@ -327,8 +349,17 @@ def RUN():
     TOTAL = -1
     CURRENT = -1
 
-    process = subprocess.Popen(' '.join(cmds), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
+    global should_stop
+    should_stop = False
+
+    process = subprocess.Popen(' '.join(cmds), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
     for line in process.stdout:
+
+        if should_stop:
+            should_stop = False
+            process.stdin.write('q\n')
+            process.stdin.flush()
+
         # Loading
         if TOTAL < 0:
             # Duration: hh:mm:ss.ms, start: XXX, bitrate: YYY
@@ -351,10 +382,12 @@ def RUN():
 
     process.wait()
     print('Done!')
+    show_run()
 
 # ===== Run Button =====
 run_btn = ctk.CTkButton(frame, text='Run', command=RUN)
-run_btn.grid(row=5, rowspan=2, column=3, padx=8, pady=8, sticky='sen')
+stop_btn = ctk.CTkButton(frame, text='Interrupt', command=on_stop, fg_color='red')
+show_run()
 
 # ===== Program Loop =====
 app.mainloop()
