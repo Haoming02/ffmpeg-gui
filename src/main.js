@@ -1,4 +1,5 @@
 const { invoke } = window.__TAURI__.core;
+const { open: openDialog } = window.__TAURI__.dialog;
 
 async function preload() {
   /** @type {boolean} */
@@ -11,4 +12,17 @@ async function preload() {
 
 window.addEventListener("DOMContentLoaded", () => {
   preload();
+
+  const folderInput = document.getElementById("input");
+
+  folderInput.addEventListener("dblclick", async () => {
+    const selected = await openDialog({
+      directory: true,
+      multiple: false,
+      defaultPath: ".",
+    });
+
+    if (selected) folderInput.value = selected;
+  });
+
 });
