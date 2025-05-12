@@ -1,10 +1,14 @@
 const { invoke } = window.__TAURI__.core;
 
-window.addEventListener("DOMContentLoaded", async () => {
-  const msg = document.querySelector("#msg");
-
+async function preload() {
   /** @type {boolean} */
-  const ffmpeg = await invoke("has_ffmpeg");
+  const hasFFmpeg = await invoke("has_ffmpeg");
+  if (hasFFmpeg) return;
 
-  msg.textContent = `FFmpeg: ${ffmpeg}`;
+  const img = document.getElementById("title");
+  img.querySelector("img").removeAttribute("hidden");
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  preload();
 });
