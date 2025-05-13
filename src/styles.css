@@ -4,7 +4,7 @@
   line-height: 24px;
   font-weight: 400;
   color: var(--text);
-  background-color: var(--base);
+  background-color: var(--crust);
 }
 
 * {
@@ -25,7 +25,7 @@ main {
   width: calc(100% - 1em);
   height: calc(100% - 1em);
   border-radius: 0.5em;
-  background-color: var(--surface0);
+  background-color: var(--mantle);
   padding: 0.5em;
 }
 
@@ -38,7 +38,8 @@ main {
 #title img {
   width: 2em;
   height: 2em;
-  margin: auto auto auto 1em;
+  margin: 4px;
+  cursor: pointer;
 }
 
 #title h2 {
@@ -51,4 +52,37 @@ main {
   width: auto;
   height: auto;
   margin: 4px 4px auto auto;
+}
+
+#paths {
+  border-radius: 0.5em;
+  background-color: var(--surface0);
+  padding: 0.5em 1em;
+  margin: 0 2em;
+}
+
+#paths label {
+  display: inline-block;
+  width: 4em;
+  height: 4em;
+  color: var(--text);
+  font-weight: bold;
+  text-align: left;
+  align-content: center;
+}
+
+#paths input {
+  font-family: monospace;
+  display: inline-block;
+  width: calc(100% - 6em);
+  margin: 0.5em;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  color: var(--subtext0);
+  background: var(--base);
+  border: 2px solid var(--overlay0);
+}
+
+#paths input::placeholder {
+  color: var(--overlay0);
 }

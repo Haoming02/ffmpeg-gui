@@ -16,7 +16,8 @@
 
     <div id="title" class="row">
       <div>
-        <img hidden src="assets/warning-svgrepo.png" title="Failed to detect an installation of FFmpeg...">
+        <img id="settings" src="assets/settings-svgrepo.png" title="Settings">
+        <img id="warning" hidden src="assets/warning-svgrepo.png" title="Failed to detect an installation of FFmpeg...">
       </div>
       <h2>FFmpeg GUI</h2>
       <div>
@@ -24,7 +25,16 @@
       </div>
     </div>
 
-    <input id="input" type="text" autocomplete="off" placeholder="Path to input file/folder..." />
+    <div id="paths">
+      <div class="row">
+        <label>Source</label>
+        <input id="input" type="text" autocomplete="off" placeholder="Path to input file / folder..." />
+      </div>
+      <div class="row">
+        <label>Output</label>
+        <input id="output" type="text" autocomplete="off" placeholder="Path to output file / folder..." />
+      </div>
+    </div>
 
   </main>
 </body>
