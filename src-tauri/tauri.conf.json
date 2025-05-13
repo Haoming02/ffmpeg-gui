@@ -12,7 +12,8 @@
       {
         "title": "FFmpeg GUI",
         "width": 720,
-        "height": 400
+        "height": 400,
+        "resizable": false
       }
     ],
     "security": {
