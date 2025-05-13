@@ -12,6 +12,7 @@
 </head>
 
 <body>
+
   <main class="col">
 
     <div id="title" class="row">
@@ -25,7 +26,7 @@
       </div>
     </div>
 
-    <div id="paths">
+    <form id="paths">
       <div class="row">
         <label>Source</label>
         <input id="input" type="text" autocomplete="off" placeholder="Path to input file / folder..." />
@@ -34,9 +35,18 @@
         <label>Output</label>
         <input id="output" type="text" autocomplete="off" placeholder="Path to output file / folder..." />
       </div>
-    </div>
+    </form>
 
   </main>
+
+  <div id="settings-panel" class="col">
+    <h2>Settings</h2>
+    <form>
+      <input type="checkbox" id="batch" name="batch" checked />
+      <label for="batch">Batch Processing</label>
+    </form>
+  </div>
+
 </body>
 
 </html>

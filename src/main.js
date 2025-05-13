@@ -3,7 +3,9 @@ const { open: openDialog } = window.__TAURI__.dialog;
 
 /** @type {HTMLInputElement} */ let inputPath;
 /** @type {HTMLInputElement} */ let outputPath;
-/** @type {HTMLImageElement} */ let settings;
+/** @type {HTMLImageElement} */ let settingsButton;
+/** @type {HTMLDivElement} */ let settingsPanel;
+/** @type {HTMLInputElement} */ let batchToggle;
 
 /** @type {boolean} */ let batch = true;
 
@@ -20,12 +22,17 @@ async function preload() {
 function init() {
   inputPath = document.getElementById("input");
   outputPath = document.getElementById("output");
-  settings = document.getElementById("settings");
+  settingsButton = document.getElementById("settings");
+  settingsPanel = document.getElementById("settings-panel");
+  batchToggle = document.getElementById("batch");
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   preload();
   init();
+
+  settingsButton.onclick = () => settingsPanel.classList.toggle("enable");
+  batchToggle.onchange = () => { batch = batchToggle.checked; }
 
   inputPath.addEventListener("dblclick", async () => {
     const path = await openDialog({ directory: batch, multiple: false, defaultPath: "." });

@@ -40,9 +40,11 @@ main {
   height: 2em;
   margin: 4px;
   cursor: pointer;
+  z-index: 100;
+  filter: drop-shadow(2px 2px 1px black);
 }
 
-#title h2 {
+h2 {
   text-align: center;
   margin: auto;
   width: 100%;
@@ -85,4 +87,29 @@ main {
 
 #paths input::placeholder {
   color: var(--overlay0);
+}
+
+#settings-panel {
+  background-color: var(--surface0);
+  position: absolute;
+  width: calc(100% - 2em);
+  height: calc(100% - 2em);
+  padding: 1em;
+  left: 0%;
+  top: -100%;
+  margin: 0;
+  transition: ease 0.2s;
+}
+
+#settings-panel.enable {
+  top: 0%;
+}
+
+#settings-panel>form {
+  width: 80%;
+  height: 60%;
+  margin: auto;
+  background-color: var(--base);
+  border-radius: 1em;
+  padding: 2em;
 }
