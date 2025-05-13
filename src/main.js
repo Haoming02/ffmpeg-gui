@@ -7,7 +7,23 @@ const { open: openDialog } = window.__TAURI__.dialog;
 /** @type {HTMLDivElement} */ let settingsPanel;
 /** @type {HTMLInputElement} */ let batchToggle;
 
+/** @type {HTMLSelectElement} */ let vcodec;
+/** @type {HTMLInputElement} */ let crfSlider;
+/** @type {HTMLLabelElement} */ let crfLabel;
+/** @type {HTMLSelectElement} */ let prores;
+
 /** @type {boolean} */ let batch = true;
+
+
+/** @type {Array<[number, string]>} */
+const QualityThreshold = [
+  [0, "Lossless"],
+  [9, "Extreme"],
+  [18, "High"],
+  [27, "Normal"],
+  [36, "Low"],
+  [54, "Worst"]
+];
 
 async function preload() {
   /** @type {boolean} */
@@ -25,6 +41,24 @@ function init() {
   settingsButton = document.getElementById("settings");
   settingsPanel = document.getElementById("settings-panel");
   batchToggle = document.getElementById("batch");
+
+  vcodec = document.getElementById("vcodec");
+  crfSlider = document.getElementById("crf");
+  crfLabel = crfSlider.parentElement.querySelector("label");
+  prores = document.getElementById("prores");
+}
+
+/** @param {number} crf @returns {string} */
+function qualityLabel(crf) {
+  let label;
+
+  for (const [limit, name] of QualityThreshold) {
+    if (crf > limit) continue;
+    label = name;
+    break;
+  }
+
+  return `Quality<br>${label} (${crf})`;
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -33,6 +67,18 @@ window.addEventListener("DOMContentLoaded", () => {
 
   settingsButton.onclick = () => settingsPanel.classList.toggle("enable");
   batchToggle.onchange = () => { batch = batchToggle.checked; }
+
+  vcodec.onchange = () => {
+    if (vcodec.value === "ProRes") {
+      crfSlider.parentElement.classList.add("hidden");
+      prores.parentElement.classList.remove("hidden");
+    } else {
+      crfSlider.parentElement.classList.remove("hidden");
+      prores.parentElement.classList.add("hidden");
+    }
+  }
+
+  crfSlider.oninput = () => { crfLabel.innerHTML = qualityLabel(crfSlider.value); }
 
   inputPath.addEventListener("dblclick", async () => {
     const path = await openDialog({ directory: batch, multiple: false, defaultPath: "." });

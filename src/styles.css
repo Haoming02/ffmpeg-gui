@@ -5,6 +5,7 @@
   font-weight: 400;
   color: var(--text);
   background-color: var(--crust);
+  user-select: none;
 }
 
 * {
@@ -32,7 +33,7 @@ main {
 #title div {
   display: flex;
   width: 10em;
-  height: 4em;
+  height: 3em;
 }
 
 #title img {
@@ -54,22 +55,23 @@ h2 {
   width: auto;
   height: auto;
   margin: 4px 4px auto auto;
+  color: var(--surface2);
 }
 
 #paths {
   border-radius: 0.5em;
   background-color: var(--surface0);
-  padding: 0.5em 1em;
-  margin: 0 2em;
+  padding: 0.25em 0.5em;
+  margin: 0 1em;
 }
 
 #paths label {
   display: inline-block;
   width: 4em;
-  height: 4em;
+  height: 3em;
   color: var(--text);
   font-weight: bold;
-  text-align: left;
+  text-align: center;
   align-content: center;
 }
 
@@ -77,16 +79,44 @@ h2 {
   font-family: monospace;
   display: inline-block;
   width: calc(100% - 6em);
-  margin: 0.5em;
+  margin: 0.25em;
   padding: 0.5em;
   border-radius: 0.5em;
   color: var(--subtext0);
   background: var(--base);
-  border: 2px solid var(--overlay0);
+  border: 1px solid var(--overlay0);
 }
 
 #paths input::placeholder {
   color: var(--overlay0);
+}
+
+#parameters {
+  border-radius: 0.5em;
+  background-color: var(--surface0);
+  padding: 1em;
+  margin: 1em;
+}
+
+#parameters div.row {
+  gap: 2em;
+  font-weight: bold;
+}
+
+#parameters div.col {
+  width: 20%;
+  text-align: center;
+  margin: auto;
+}
+
+#parameters select {
+  background: var(--base);
+  border: 1px solid var(--overlay0);
+  color: var(--subtext1);
+  padding: 4px;
+  border-radius: 4px;
+  font-family: monospace;
+  outline: none;
 }
 
 #settings-panel {

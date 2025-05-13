@@ -28,12 +28,68 @@
 
     <form id="paths">
       <div class="row">
-        <label>Source</label>
+        <label for="input">Source</label>
         <input id="input" type="text" autocomplete="off" placeholder="Path to input file / folder..." />
       </div>
       <div class="row">
-        <label>Output</label>
+        <label for="output">Output</label>
         <input id="output" type="text" autocomplete="off" placeholder="Path to output file / folder..." />
+      </div>
+    </form>
+
+    <form id="parameters">
+      <div class="row">
+
+        <div class="col">
+          <label for="vcodec">Video<br>Codec</label>
+          <select name="vcodec" id="vcodec">
+            <option>H.264</option>
+            <option>H.264 (GPU)</option>
+            <option>HEVC</option>
+            <option>HEVC (GPU)</option>
+            <option>AV1</option>
+            <option>AV1 (GPU)</option>
+            <option>VP9</option>
+            <option>ProRes</option>
+          </select>
+        </div>
+
+        <div class="col">
+          <label for="crf">Quality<br>Normal (23)</label>
+          <input type="range" id="crf" name="crf" min="0" max="51" value="23" step="1" />
+        </div>
+
+        <div class="col hidden">
+          <label for="prores">ProRes<br>Quality</label>
+          <select name="prores" id="prores">
+            <option>Proxy</option>
+            <option>LT</option>
+            <option>SQ</option>
+            <option>HQ</option>
+          </select>
+        </div>
+
+        <div class="col">
+          <label for="acodec">Audio<br>Codec</label>
+          <select name="acodec" id="acodec">
+            <option>aac</option>
+            <option>mp3</option>
+            <option>opus</option>
+            <option>flac</option>
+            <option>alac</option>
+          </select>
+        </div>
+
+        <div class="col">
+          <label for="bitrate">Audio<br>Bitrate</label>
+          <select name="bitrate" id="bitrate">
+            <option>128k</option>
+            <option>192k</option>
+            <option>256k</option>
+            <option>320k</option>
+          </select>
+        </div>
+
       </div>
     </form>
 
