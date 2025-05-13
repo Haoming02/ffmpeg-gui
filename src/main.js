@@ -11,8 +11,11 @@ const { open: openDialog } = window.__TAURI__.dialog;
 /** @type {HTMLInputElement} */ let crfSlider;
 /** @type {HTMLLabelElement} */ let crfLabel;
 /** @type {HTMLSelectElement} */ let prores;
+/** @type {HTMLSelectElement} */ let acodec;
+/** @type {HTMLSelectElement} */ let bitrate;
+/** @type {HTMLInputElement} */ let flac;
 
-/** @type {boolean} */ let batch = true;
+/** @type {boolean} */ let batch = false;
 
 
 /** @type {Array<[number, string]>} */
@@ -46,6 +49,9 @@ function init() {
   crfSlider = document.getElementById("crf");
   crfLabel = crfSlider.parentElement.querySelector("label");
   prores = document.getElementById("prores");
+  acodec = document.getElementById("acodec");
+  bitrate = document.getElementById("bitrate");
+  flac = document.getElementById("flac");
 }
 
 /** @param {number} crf @returns {string} */
@@ -78,13 +84,24 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  acodec.onchange = () => {
+    if (acodec.value === "flac") {
+      bitrate.parentElement.classList.add("hidden");
+      flac.parentElement.classList.remove("hidden");
+    }
+    else {
+      bitrate.parentElement.classList.remove("hidden");
+      flac.parentElement.classList.add("hidden");
+    }
+  }
+
   crfSlider.oninput = () => { crfLabel.innerHTML = qualityLabel(crfSlider.value); }
 
   inputPath.addEventListener("dblclick", async () => {
     const path = await openDialog({ directory: batch, multiple: false, defaultPath: "." });
     if (path) {
       inputPath.value = path;
-      outputPath.value = path;
+      if (batch) outputPath.value = path;
     }
   });
 
