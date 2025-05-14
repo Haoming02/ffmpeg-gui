@@ -22,8 +22,11 @@ const { invoke } = window.__TAURI__.core;
 /** @type {HTMLInputElement} */ let batchToggle;
 
 /** @type {boolean} */ let batch = false;
+/** @type {string} */ let sep;
 
 async function preload() {
+  sep = await invoke("get_separator");
+
   /** @type {boolean} */
   const hasFFmpeg = await invoke("has_ffmpeg");
   if (hasFFmpeg) return;
@@ -67,15 +70,26 @@ function qualityLabel(crf) {
   return `Quality<br>${label} (${crf})`;
 }
 
+/** @param {string} path @returns {string} */
+function basename(path) {
+  const chunks = path.split(sep);
+  return chunks[chunks.length - 1];
+}
+
 async function gatherParams() {
+  /** @type {string[]} */ let inputFiles;
+  /** @type {string[]} */ let outputFiles;
 
   const input = inputPath.value;
   const output = outputPath.value;
 
-  if (batch) {
-    const files = await invoke("list_files", { input: input });
-    console.log(files);
-    return;
+  if (!batch) {
+    inputFiles = [input];
+    outputFiles = [output];
+  }
+  else {
+    inputFiles = await invoke("list_files", { input: input });
+    outputFiles = inputFiles.map(file => [output, basename(file)].join(sep));
   }
 
   const cv = VcodecMapping[vcodec.value];
@@ -86,18 +100,21 @@ async function gatherParams() {
   const aparam = (ca === "flac") ?
     ["-compression_level", flac.value] : ["-b:a", bitrate.value];
 
-  const status = await invoke("run_ffmpeg", {
-    input: input,
-    output: output,
-    args: [
-      "-c:v", cv,
-      ...vparam,
-      "-c:a", ca,
-      ...aparam,
-    ]
-  });
+  const pairs = inputFiles.map((f, i) => [f, outputFiles[i]]);
+  for (const [input, output] of pairs) {
+    const status = await invoke("run_ffmpeg", {
+      input: input,
+      output: output,
+      args: [
+        "-c:v", cv,
+        ...vparam,
+        "-c:a", ca,
+        ...aparam,
+      ]
+    });
 
-  console.log(ErrorCode[status]);
+    console.log(ErrorCode[status]);
+  }
 }
 
 window.addEventListener("DOMContentLoaded", () => {

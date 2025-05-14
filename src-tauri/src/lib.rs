@@ -1,8 +1,13 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, MAIN_SEPARATOR};
 use std::process::Command;
 
 mod func;
+
+#[tauri::command]
+fn get_separator() -> char {
+    MAIN_SEPARATOR
+}
 
 #[tauri::command]
 fn has_ffmpeg() -> bool {
@@ -31,6 +36,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
+            get_separator,
             has_ffmpeg,
             list_files,
             func::run_ffmpeg
