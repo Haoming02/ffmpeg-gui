@@ -156,3 +156,8 @@ h2 {
   color: var(--base);
   cursor: pointer;
 }
+
+#run:disabled {
+  background: var(--yellow);
+  cursor: not-allowed;
+}

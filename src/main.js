@@ -31,6 +31,8 @@ async function preload() {
   const warning = document.getElementById("warning");
   warning.removeAttribute("hidden");
   warning.onclick = () => window.open("https://ffmpeg.org/download.html", "_blank");
+
+  runButton.disabled = true;
 }
 
 function init() {
@@ -99,8 +101,8 @@ async function gatherParams() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  preload();
   init();
+  preload();
 
   settingsButton.onclick = () => settingsPanel.classList.toggle("enable");
   batchToggle.onchange = () => {
