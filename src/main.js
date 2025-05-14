@@ -70,6 +70,12 @@ async function gatherParams() {
   const input = inputPath.value;
   const output = outputPath.value;
 
+  if (batch) {
+    const files = await invoke("list_files", { input: input });
+    console.log(files);
+    return;
+  }
+
   const cv = VcodecMapping[vcodec.value];
   const vparam = (cv === "prores") ?
     ["-profile:v", ProResIndex.indexOf(prores.value)] : ["-crf", crfSlider.value];
