@@ -1,5 +1,6 @@
-const { invoke } = window.__TAURI__.core;
+import { ProResIndex, QualityThreshold, VcodecMapping, ErrorCode } from "./assets/mappings.js"
 const { open: openDialog } = window.__TAURI__.dialog;
+const { invoke } = window.__TAURI__.core;
 
 
 /** @type {HTMLInputElement} */ let inputPath;
@@ -21,33 +22,6 @@ const { open: openDialog } = window.__TAURI__.dialog;
 /** @type {HTMLInputElement} */ let batchToggle;
 
 /** @type {boolean} */ let batch = false;
-
-
-/** @type {Array<[number, string]>} */
-const QualityThreshold = [
-  [0, "Lossless"],
-  [9, "Extreme"],
-  [18, "High"],
-  [27, "Normal"],
-  [36, "Low"],
-  [54, "Worst"]
-];
-
-/** @type {Map<string, string>} */
-const VcodecMapping = {
-  "H.264": "h264",
-  "H.264 (GPU)": "h264_nvenc",
-  "HEVC": "hevc",
-  "HEVC (GPU)": "hevc_nvenc",
-  "AV1": "av1",
-  "AV1 (GPU)": "av1_nvenc",
-  "VP9": "vp9",
-  "ProRes": "prores"
-};
-
-/** @type {string[]} */
-const ProResIndex = ["Proxy", "LT", "SQ", "HQ"];
-
 
 async function preload() {
   /** @type {boolean} */
@@ -91,20 +65,31 @@ function qualityLabel(crf) {
   return `Quality<br>${label} (${crf})`;
 }
 
-function gatherParams() {
+async function gatherParams() {
 
   const input = inputPath.value;
   const output = outputPath.value;
 
   const cv = VcodecMapping[vcodec.value];
   const vparam = (cv === "prores") ?
-    `-profile:v ${ProResIndex.indexOf(prores.value)}` : `-crf ${crfSlider.value}`;
+    ["-profile:v", ProResIndex.indexOf(prores.value)] : ["-crf", crfSlider.value];
 
   const ca = acodec.value;
   const aparam = (ca === "flac") ?
-    `-compression_level ${flac.value}` : `-b:a ${bitrate.value}`;
+    ["-compression_level", flac.value] : ["-b:a", bitrate.value];
 
-  console.log(`ffmpeg -i ${input} -c:v ${cv} ${vparam} -c:a ${ca} ${aparam} ${output}`);
+  const status = await invoke("run_ffmpeg", {
+    input: input,
+    output: output,
+    args: [
+      "-c:v", cv,
+      ...vparam,
+      "-c:a", ca,
+      ...aparam,
+    ]
+  });
+
+  console.log(ErrorCode[status]);
 }
 
 window.addEventListener("DOMContentLoaded", () => {

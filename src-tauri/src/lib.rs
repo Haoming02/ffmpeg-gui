@@ -1,4 +1,5 @@
 use std::process::Command;
+mod func;
 
 #[tauri::command]
 fn has_ffmpeg() -> bool {
@@ -13,7 +14,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![has_ffmpeg])
+        .invoke_handler(tauri::generate_handler![has_ffmpeg, func::run_ffmpeg])
         .run(tauri::generate_context!())
         .expect("[Error] Failed to run Tauri application...");
 }
