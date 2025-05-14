@@ -1,11 +1,9 @@
 const { invoke } = window.__TAURI__.core;
 const { open: openDialog } = window.__TAURI__.dialog;
 
+
 /** @type {HTMLInputElement} */ let inputPath;
 /** @type {HTMLInputElement} */ let outputPath;
-/** @type {HTMLImageElement} */ let settingsButton;
-/** @type {HTMLDivElement} */ let settingsPanel;
-/** @type {HTMLInputElement} */ let batchToggle;
 
 /** @type {HTMLSelectElement} */ let vcodec;
 /** @type {HTMLInputElement} */ let crfSlider;
@@ -14,6 +12,13 @@ const { open: openDialog } = window.__TAURI__.dialog;
 /** @type {HTMLSelectElement} */ let acodec;
 /** @type {HTMLSelectElement} */ let bitrate;
 /** @type {HTMLInputElement} */ let flac;
+/** @type {HTMLLabelElement} */ let flacLabel;
+
+/** @type {HTMLButtonElement} */ let runButton;
+
+/** @type {HTMLImageElement} */ let settingsButton;
+/** @type {HTMLDivElement} */ let settingsPanel;
+/** @type {HTMLInputElement} */ let batchToggle;
 
 /** @type {boolean} */ let batch = false;
 
@@ -27,6 +32,22 @@ const QualityThreshold = [
   [36, "Low"],
   [54, "Worst"]
 ];
+
+/** @type {Map<string, string>} */
+const VcodecMapping = {
+  "H.264": "h264",
+  "H.264 (GPU)": "h264_nvenc",
+  "HEVC": "hevc",
+  "HEVC (GPU)": "hevc_nvenc",
+  "AV1": "av1",
+  "AV1 (GPU)": "av1_nvenc",
+  "VP9": "vp9",
+  "ProRes": "prores"
+};
+
+/** @type {string[]} */
+const ProResIndex = ["Proxy", "LT", "SQ", "HQ"];
+
 
 async function preload() {
   /** @type {boolean} */
@@ -52,6 +73,9 @@ function init() {
   acodec = document.getElementById("acodec");
   bitrate = document.getElementById("bitrate");
   flac = document.getElementById("flac");
+  flacLabel = flac.parentElement.querySelector("label");
+
+  runButton = document.getElementById("run");
 }
 
 /** @param {number} crf @returns {string} */
@@ -67,12 +91,32 @@ function qualityLabel(crf) {
   return `Quality<br>${label} (${crf})`;
 }
 
+function gatherParams() {
+
+  const input = inputPath.value;
+  const output = outputPath.value;
+
+  const cv = VcodecMapping[vcodec.value];
+  const vparam = (cv === "prores") ?
+    `-profile:v ${ProResIndex.indexOf(prores.value)}` : `-crf ${crfSlider.value}`;
+
+  const ca = acodec.value;
+  const aparam = (ca === "flac") ?
+    `-compression_level ${flac.value}` : `-b:a ${bitrate.value}`;
+
+  console.log(`ffmpeg -i ${input} -c:v ${cv} ${vparam} -c:a ${ca} ${aparam} ${output}`);
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   preload();
   init();
 
   settingsButton.onclick = () => settingsPanel.classList.toggle("enable");
-  batchToggle.onchange = () => { batch = batchToggle.checked; }
+  batchToggle.onchange = () => {
+    batch = batchToggle.checked;
+    inputPath.value = "";
+    outputPath.value = "";
+  }
 
   vcodec.onchange = () => {
     if (vcodec.value === "ProRes") {
@@ -96,9 +140,10 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   crfSlider.oninput = () => { crfLabel.innerHTML = qualityLabel(crfSlider.value); }
+  flac.oninput = () => { flacLabel.innerHTML = `Compression<br>${flac.value}`; }
 
   inputPath.addEventListener("dblclick", async () => {
-    const path = await openDialog({ directory: batch, multiple: false, defaultPath: "." });
+    const path = await openDialog({ directory: batch, multiple: false });
     if (path) {
       inputPath.value = path;
       if (batch) outputPath.value = path;
@@ -106,7 +151,13 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   outputPath.addEventListener("dblclick", async () => {
-    const path = await openDialog({ directory: batch, multiple: false, defaultPath: "." });
+    const path = await openDialog({ directory: batch, multiple: false });
     if (path) outputPath.value = path;
   });
+
+  runButton.onclick = (e) => {
+    e.preventDefault();
+    gatherParams();
+    return false;
+  }
 });
