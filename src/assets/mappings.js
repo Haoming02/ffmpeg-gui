@@ -13,14 +13,19 @@ const QualityThreshold = [
 
 /** @type {Map<string, string>} */
 const VcodecMapping = {
-    "H.264": "h264",
-    "H.264 (GPU)": "h264_nvenc",
-    "HEVC": "hevc",
-    "HEVC (GPU)": "hevc_nvenc",
-    "AV1": "av1",
-    "AV1 (GPU)": "av1_nvenc",
-    "VP9": "vp9",
-    "ProRes": "prores",
+    H264: "h264",
+    HEVC: "hevc",
+    AV1: "av1",
+    VP9: "vp9",
+    ProRes: "prores",
+};
+
+/** @type {Map<string, string>} */
+const AcodecMapping = {
+    aac: "aac",
+    mp3: "libmp3lame",
+    opus: "libopus",
+    flac: "flac"
 };
 
 /** @type {Map<number, string>} */
@@ -32,4 +37,4 @@ const ErrorCode = {
     f: "Failed to run FFmpeg...",
 };
 
-export { ProResIndex, QualityThreshold, VcodecMapping, ErrorCode };
+export { ProResIndex, QualityThreshold, VcodecMapping, AcodecMapping, ErrorCode };

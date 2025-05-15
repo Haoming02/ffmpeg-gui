@@ -1,33 +1,15 @@
-import { ProResIndex, QualityThreshold, VcodecMapping, ErrorCode } from "./assets/mappings.js"
+import { ProResIndex, QualityThreshold, VcodecMapping, AcodecMapping, ErrorCode } from "./assets/mappings.js"
 import { Components } from "./assets/components.js"
 
-const { open: openDialog } = window.__TAURI__.dialog;
+const { open: openDialog, message: displayPopup } = window.__TAURI__.dialog;
 const { event: tauriEvent } = window.__TAURI__;
 const { invoke } = window.__TAURI__.core;
 
 /** @type {boolean} */ let batch = false;
 /** @type {string} */ let sep;
 
-async function hookProgress() {
-  await tauriEvent.listen('FFMPEG_PROGRESS', (e) => {
-    Components.progressBar.style.width = `${e.payload}%`;
-  });
-}
-
-async function hookStatus() {
-  await tauriEvent.listen('FFMPEG_STATUS', (e) => {
-    console.log(ErrorCode[e.payload]);
-
-    Components.runButton.classList.remove("hidden");
-    Components.stopButton.classList.add("hidden");
-    Components.progressBar.style.width = "100%";
-  });
-}
-
 async function preload() {
   sep = await invoke("get_separator");
-  hookProgress();
-  hookStatus();
 
   /** @type {boolean} */
   const hasFFmpeg = await invoke("has_ffmpeg");
@@ -42,15 +24,10 @@ async function preload() {
 
 /** @param {number} crf @returns {string} */
 function qualityLabel(crf) {
-  let label;
-
   for (const [limit, name] of QualityThreshold) {
-    if (crf > limit) continue;
-    label = name;
-    break;
+    if (crf <= limit);
+    return `Quality<br>${name} (${crf})`;
   }
-
-  return `Quality<br>${label} (${crf})`;
 }
 
 /** @param {string} path @returns {string} */
@@ -79,7 +56,7 @@ async function gatherParams() {
   const vparam = (cv === "prores") ?
     ["-profile:v", ProResIndex.indexOf(Components.prores.value)] : ["-crf", Components.crfSlider.value];
 
-  const ca = Components.acodec.value;
+  const ca = AcodecMapping[Components.acodec.value];
   const aparam = (ca === "flac") ?
     ["-compression_level", Components.flac.value] : ["-b:a", Components.bitrate.value];
 
@@ -101,23 +78,35 @@ async function gatherParams() {
     if (status === "s") {
       Components.runButton.classList.add("hidden");
       Components.stopButton.classList.remove("hidden");
-    } else console.log(ErrorCode[status]);
+    } else await displayPopup(ErrorCode[status], { title: "FFmpeg GUI", kind: "error" });
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  Components.init();
-  preload();
+async function tauriEventListeners() {
+  await tauriEvent.listen('FFMPEG_PROGRESS', (e) => {
+    Components.progressBar.style.width = `${e.payload}%`;
+  });
 
+  await tauriEvent.listen('FFMPEG_STATUS', async (e) => {
+    if (e.payload !== "s")
+      await displayPopup(ErrorCode[e.payload], { title: "FFmpeg GUI", kind: "error" });
+
+    Components.runButton.classList.remove("hidden");
+    Components.stopButton.classList.add("hidden");
+    Components.progressBar.style.width = "100%";
+  });
+}
+
+function htmlEventListeners() {
   Components.settingsButton.onclick = () => Components.settingsPanel.classList.toggle("enable");
-  Components.batchToggle.onchange = () => {
-    batch = Components.batchToggle.checked;
+  Components.batchToggle.onchange = (e) => {
+    batch = e.target.checked;
     Components.inputPath.value = "";
     Components.outputPath.value = "";
   }
 
-  Components.vcodec.onchange = () => {
-    if (Components.vcodec.value === "ProRes") {
+  Components.vcodec.onchange = (e) => {
+    if (e.target.value === "ProRes") {
       Components.crfSlider.parentElement.classList.add("hidden");
       Components.prores.parentElement.classList.remove("hidden");
     } else {
@@ -126,8 +115,8 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  Components.acodec.onchange = () => {
-    if (Components.acodec.value === "flac") {
+  Components.acodec.onchange = (e) => {
+    if (e.target.value === "flac") {
       Components.bitrate.parentElement.classList.add("hidden");
       Components.flac.parentElement.classList.remove("hidden");
     }
@@ -137,8 +126,8 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  Components.crfSlider.oninput = () => { Components.crfLabel.innerHTML = qualityLabel(Components.crfSlider.value); }
-  Components.flac.oninput = () => { Components.flacLabel.innerHTML = `Compression<br>${flac.value}`; }
+  Components.crfSlider.oninput = (e) => { Components.crfLabel.innerHTML = qualityLabel(e.target.value); }
+  Components.flac.oninput = (e) => { Components.flacLabel.innerHTML = `Compression<br>${e.target.value}`; }
 
   Components.inputPath.addEventListener("dblclick", async () => {
     const path = await openDialog({ directory: batch, multiple: false });
@@ -164,4 +153,11 @@ window.addEventListener("DOMContentLoaded", () => {
     await invoke("interrupt_ffmpeg");
     return false;
   }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  Components.init();
+  preload();
+  tauriEventListeners();
+  htmlEventListeners();
 });
