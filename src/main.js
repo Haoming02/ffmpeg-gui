@@ -17,6 +17,7 @@ const { invoke } = window.__TAURI__.core;
 /** @type {HTMLLabelElement} */ let flacLabel;
 
 /** @type {HTMLButtonElement} */ let runButton;
+/** @type {HTMLButtonElement} */ let stopButton;
 /** @type {HTMLDivElement} */ let progressBar;
 
 /** @type {HTMLImageElement} */ let settingsButton;
@@ -35,6 +36,9 @@ async function hookProgress() {
 async function hookStatus() {
   await tauriEvent.listen('FFMPEG_STATUS', (e) => {
     console.log(ErrorCode[e.payload]);
+    runButton.classList.remove("hidden");
+    stopButton.classList.add("hidden");
+    progressBar.style.width = "100%";
   });
 }
 
@@ -71,6 +75,7 @@ function init() {
   flacLabel = flac.parentElement.querySelector("label");
 
   runButton = document.getElementById("run");
+  stopButton = document.getElementById("interrupt");
   progressBar = document.getElementById("progress");
 }
 
@@ -132,7 +137,10 @@ async function gatherParams() {
       ]
     });
 
-    console.log(ErrorCode[status]);
+    if (status === "s") {
+      runButton.classList.add("hidden");
+      stopButton.classList.remove("hidden");
+    } else console.log(ErrorCode[status]);
   }
 }
 
@@ -187,6 +195,12 @@ window.addEventListener("DOMContentLoaded", () => {
   runButton.onclick = (e) => {
     e.preventDefault();
     gatherParams();
+    return false;
+  }
+
+  stopButton.onclick = async (e) => {
+    e.preventDefault();
+    await invoke("interrupt_ffmpeg");
     return false;
   }
 });

@@ -1,8 +1,11 @@
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::{ChildStdin, Command, Stdio};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use tauri::Emitter;
+
+use crate::state::ProcessHandle;
 
 fn parse_seconds(timestamp: &str) -> f32 {
     let mut time: f32 = 0.0;
@@ -25,9 +28,15 @@ fn parse_seconds(timestamp: &str) -> f32 {
     time
 }
 
-fn run_single(app: &tauri::Window, input: &String, output: &String, args: &Vec<String>) {
+fn run_single(
+    app: &tauri::Window,
+    handle: &Arc<Mutex<Option<ChildStdin>>>,
+    input: &String,
+    output: &String,
+    args: &Vec<String>,
+) {
     let mut command = Command::new("ffmpeg");
-    command.arg("-hide_banner").arg("-nostdin");
+    command.arg("-hide_banner");
     command.arg("-hwaccel").arg("auto");
 
     command.arg("-i").arg(&input);
@@ -38,6 +47,7 @@ fn run_single(app: &tauri::Window, input: &String, output: &String, args: &Vec<S
 
     command.arg("-progress").arg("pipe:2");
     command.stderr(Stdio::piped());
+    command.stdin(Stdio::piped());
 
     let spawn = command.spawn();
     let mut child = match spawn {
@@ -47,6 +57,9 @@ fn run_single(app: &tauri::Window, input: &String, output: &String, args: &Vec<S
             return;
         }
     };
+
+    let stdin = child.stdin.take().unwrap();
+    *handle.lock().unwrap() = Some(stdin);
 
     let stderr = child.stderr.take().unwrap();
     let reader = BufReader::new(stderr);
@@ -88,10 +101,18 @@ fn run_single(app: &tauri::Window, input: &String, output: &String, args: &Vec<S
     } else {
         _ = app.emit("FFMPEG_STATUS", 'f');
     }
+
+    _ = handle.lock().unwrap().take();
 }
 
 #[tauri::command]
-pub fn run_ffmpeg(app: tauri::Window, input: String, output: String, args: Vec<String>) -> char {
+pub fn run_ffmpeg(
+    app: tauri::Window,
+    state: tauri::State<'_, ProcessHandle>,
+    input: String,
+    output: String,
+    args: Vec<String>,
+) -> char {
     let input_path = Path::new(&input);
     let output_path = Path::new(&output);
 
@@ -102,8 +123,10 @@ pub fn run_ffmpeg(app: tauri::Window, input: String, output: String, args: Vec<S
         return 'o'; // output already exists
     }
 
+    let handle = Arc::clone(&state.0);
+
     thread::spawn(move || {
-        run_single(&app, &input, &output, &args);
+        run_single(&app, &handle, &input, &output, &args);
     });
 
     's' // successfully started FFmpeg

@@ -144,11 +144,10 @@ h2 {
   padding: 2em;
 }
 
-#run {
+#action button {
   width: 6em;
   height: 4em;
   margin: auto 0.5em 0.5em auto;
-  background: var(--sapphire);
   border-radius: 1em;
   border: none;
   font-size: large;
@@ -157,9 +156,17 @@ h2 {
   cursor: pointer;
 }
 
+#run {
+  background: var(--sapphire);
+}
+
 #run:disabled {
   background: var(--yellow);
   cursor: not-allowed;
+}
+
+#interrupt {
+  background: var(--red);
 }
 
 #progress {
