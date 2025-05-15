@@ -1,4 +1,4 @@
-import { ProResIndex, QualityThreshold, VcodecMapping, AcodecMapping, ErrorCode } from "./assets/mappings.js"
+import { ProResIndex, nvEnc, QualityThreshold, VcodecMapping, AcodecMapping, ErrorCode } from "./assets/mappings.js"
 import { Components } from "./assets/components.js"
 
 const { open: openDialog, message: displayPopup } = window.__TAURI__.dialog;
@@ -52,7 +52,10 @@ async function gatherParams() {
     outputFiles = inputFiles.map(file => [output, basename(file)].join(sep));
   }
 
-  const cv = VcodecMapping[Components.vcodec.value];
+  let cv = VcodecMapping[Components.vcodec.value];
+  if (Components.gpuToggle.checked && nvEnc.includes(cv))
+    cv += "_nvenc";
+
   const vparam = (cv === "prores") ?
     ["-profile:v", ProResIndex.indexOf(Components.prores.value)] : ["-crf", Components.crfSlider.value];
 

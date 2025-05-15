@@ -1,6 +1,9 @@
 /** @type {string[]} */
 const ProResIndex = ["Proxy", "LT", "SQ", "HQ"];
 
+/** @type {string[]} */
+const nvEnc = ["h264", "hevc", "av1"];
+
 /** @type {Array<[number, string]>} */
 const QualityThreshold = [
     [0, "Lossless"],
@@ -37,4 +40,4 @@ const ErrorCode = {
     f: "Failed to run FFmpeg...",
 };
 
-export { ProResIndex, QualityThreshold, VcodecMapping, AcodecMapping, ErrorCode };
+export { ProResIndex, nvEnc, QualityThreshold, VcodecMapping, AcodecMapping, ErrorCode };

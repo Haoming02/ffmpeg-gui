@@ -37,13 +37,12 @@ class Components {
 
     /** @type {HTMLInputElement} */
     static batchToggle;
+    /** @type {HTMLInputElement} */
+    static gpuToggle;
 
     static init() {
         this.inputPath = document.getElementById("input");
         this.outputPath = document.getElementById("output");
-        this.settingsButton = document.getElementById("settings");
-        this.settingsPanel = document.getElementById("settings-panel");
-        this.batchToggle = document.getElementById("batch");
 
         this.vcodec = document.getElementById("vcodec");
         this.crfSlider = document.getElementById("crf");
@@ -57,6 +56,11 @@ class Components {
         this.runButton = document.getElementById("run");
         this.stopButton = document.getElementById("interrupt");
         this.progressBar = document.getElementById("progress");
+
+        this.settingsButton = document.getElementById("settings");
+        this.settingsPanel = document.getElementById("settings-panel");
+        this.batchToggle = document.getElementById("batch");
+        this.gpuToggle = document.getElementById("gpu");
     }
 }
 
