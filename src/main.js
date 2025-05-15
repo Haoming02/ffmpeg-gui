@@ -32,9 +32,16 @@ async function hookProgress() {
   });
 }
 
+async function hookStatus() {
+  await tauriEvent.listen('FFMPEG_STATUS', (e) => {
+    console.log(ErrorCode[e.payload]);
+  });
+}
+
 async function preload() {
   sep = await invoke("get_separator");
   hookProgress();
+  hookStatus();
 
   /** @type {boolean} */
   const hasFFmpeg = await invoke("has_ffmpeg");

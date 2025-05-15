@@ -1,6 +1,6 @@
-use std::io::{BufRead, BufReader, Error};
+use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::process::{Command, ExitStatus, Stdio};
+use std::process::{Command, Stdio};
 use std::thread;
 use tauri::Emitter;
 
@@ -25,14 +25,10 @@ fn parse_seconds(timestamp: &str) -> f32 {
     time
 }
 
-fn run_single(
-    app: tauri::Window,
-    input: &String,
-    output: &String,
-    args: &Vec<String>,
-) -> Result<ExitStatus, Error> {
+fn run_single(app: &tauri::Window, input: &String, output: &String, args: &Vec<String>) {
     let mut command = Command::new("ffmpeg");
     command.arg("-hide_banner").arg("-nostdin");
+    command.arg("-hwaccel").arg("auto");
 
     command.arg("-i").arg(&input);
     for arg in args {
@@ -43,7 +39,15 @@ fn run_single(
     command.arg("-progress").arg("pipe:2");
     command.stderr(Stdio::piped());
 
-    let mut child = command.spawn()?;
+    let spawn = command.spawn();
+    let mut child = match spawn {
+        Ok(cmd) => cmd,
+        Err(_) => {
+            _ = app.emit("FFMPEG_STATUS", 'f');
+            return;
+        }
+    };
+
     let stderr = child.stderr.take().unwrap();
     let reader = BufReader::new(stderr);
 
@@ -51,29 +55,39 @@ fn run_single(
 
     for line_result in reader.lines() {
         if let Ok(line) = line_result {
-            if total < 0.0 && line.trim().starts_with("Duration:") {
-                let temp = line
-                    .split("Duration:")
-                    .last()
-                    .unwrap()
-                    .split(", start")
-                    .next()
-                    .unwrap()
-                    .trim();
-                total = parse_seconds(&temp);
-                println!("Duration: {}", total);
-            } else if line.contains("out_time=") {
-                let temp = line.split("out_time=").last().unwrap().trim();
-                let current = parse_seconds(&temp);
-                if current > 0.0 {
-                    _ = app.emit("FFMPEG_PROGRESS", current * 100.0 / total);
+            if total < 0.0 {
+                if line.trim().starts_with("Duration:") {
+                    let temp = line
+                        .split("Duration:")
+                        .last()
+                        .unwrap()
+                        .split(", start")
+                        .next()
+                        .unwrap()
+                        .trim();
+                    total = parse_seconds(&temp);
+                }
+            } else {
+                if line.contains("out_time=") {
+                    let temp = line.split("out_time=").last().unwrap().trim();
+                    let current = parse_seconds(&temp);
+                    if current > 0.0 {
+                        _ = app.emit("FFMPEG_PROGRESS", current * 100.0 / total);
+                    }
                 }
             }
         }
     }
 
-    let status = child.wait()?;
-    Ok(status)
+    if let Ok(status) = child.wait() {
+        if status.success() {
+            _ = app.emit("FFMPEG_STATUS", 's');
+        } else {
+            _ = app.emit("FFMPEG_STATUS", 'e');
+        }
+    } else {
+        _ = app.emit("FFMPEG_STATUS", 'f');
+    }
 }
 
 #[tauri::command]
@@ -89,8 +103,8 @@ pub fn run_ffmpeg(app: tauri::Window, input: String, output: String, args: Vec<S
     }
 
     thread::spawn(move || {
-        let status = run_single(app, &input, &output, &args);
+        run_single(&app, &input, &output, &args);
     });
 
-    's'
+    's' // successfully started FFmpeg
 }
