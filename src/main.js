@@ -63,20 +63,13 @@ async function gatherParams() {
   const aparam = (ca === "flac") ?
     ["-compression_level", Components.flac.value] : ["-b:a", Components.bitrate.value];
 
+  const params = ["-c:v", cv, ...vparam, "-c:a", ca, ...aparam];
+
   const pairs = inputFiles.map((f, i) => [f, outputFiles[i]]);
   for (const [input, output] of pairs) {
     Components.progressBar.style.width = "0%";
 
-    const status = await invoke("run_ffmpeg", {
-      input: input,
-      output: output,
-      args: [
-        "-c:v", cv,
-        ...vparam,
-        "-c:a", ca,
-        ...aparam,
-      ]
-    });
+    const status = await invoke("run_ffmpeg", { input: input, output: output, args: params });
 
     if (status === "s") {
       Components.runButton.classList.add("hidden");
@@ -106,6 +99,10 @@ function htmlEventListeners() {
     batch = e.target.checked;
     Components.inputPath.value = "";
     Components.outputPath.value = "";
+
+    const obj = batch ? "folder" : "file";
+    Components.inputPath.setAttribute("placeholder", `Path to input ${obj}...`);
+    Components.outputPath.setAttribute("placeholder", `Path to output ${obj}...`);
   }
 
   Components.vcodec.onchange = (e) => {
