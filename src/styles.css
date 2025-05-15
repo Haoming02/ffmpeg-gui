@@ -191,8 +191,13 @@ h2 {
   margin: 0 0 auto 0;
   border-radius: 0.25em;
   border: 1px solid var(--overlay0);
+  cursor: pointer;
 }
 
-.checkbox>input, .checkbox>label {
-  cursor: pointer;
+.checkbox>input {
+  accent-color: var(--sapphire);
+  transform: scale(1.25);
+  top: 2px;
+  position: relative;
+  margin-right: 4px;
 }
