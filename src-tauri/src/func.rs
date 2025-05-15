@@ -1,6 +1,8 @@
 use std::io::{BufRead, BufReader, Error};
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
+use std::thread;
+use tauri::Emitter;
 
 fn parse_seconds(timestamp: &str) -> f32 {
     let mut time: f32 = 0.0;
@@ -23,7 +25,12 @@ fn parse_seconds(timestamp: &str) -> f32 {
     time
 }
 
-fn run_single(input: &String, output: &String, args: &Vec<String>) -> Result<ExitStatus, Error> {
+fn run_single(
+    app: tauri::Window,
+    input: &String,
+    output: &String,
+    args: &Vec<String>,
+) -> Result<ExitStatus, Error> {
     let mut command = Command::new("ffmpeg");
     command.arg("-hide_banner").arg("-nostdin");
 
@@ -58,7 +65,9 @@ fn run_single(input: &String, output: &String, args: &Vec<String>) -> Result<Exi
             } else if line.contains("out_time=") {
                 let temp = line.split("out_time=").last().unwrap().trim();
                 let current = parse_seconds(&temp);
-                println!("Progress: {}%", current * 100.0 / total);
+                if current > 0.0 {
+                    _ = app.emit("FFMPEG_PROGRESS", current * 100.0 / total);
+                }
             }
         }
     }
@@ -68,7 +77,7 @@ fn run_single(input: &String, output: &String, args: &Vec<String>) -> Result<Exi
 }
 
 #[tauri::command]
-pub fn run_ffmpeg(input: String, output: String, args: Vec<String>) -> char {
+pub fn run_ffmpeg(app: tauri::Window, input: String, output: String, args: Vec<String>) -> char {
     let input_path = Path::new(&input);
     let output_path = Path::new(&output);
 
@@ -79,16 +88,9 @@ pub fn run_ffmpeg(input: String, output: String, args: Vec<String>) -> char {
         return 'o'; // output already exists
     }
 
-    match run_single(&input, &output, &args) {
-        Ok(status) => {
-            if status.success() {
-                return 's'; // success
-            } else {
-                return 'e'; // error
-            }
-        }
-        Err(_) => {
-            return 'f'; // fail
-        }
-    }
+    thread::spawn(move || {
+        let status = run_single(app, &input, &output, &args);
+    });
+
+    's'
 }

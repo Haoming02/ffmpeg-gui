@@ -1,5 +1,6 @@
 import { ProResIndex, QualityThreshold, VcodecMapping, ErrorCode } from "./assets/mappings.js"
 const { open: openDialog } = window.__TAURI__.dialog;
+const { event: tauriEvent } = window.__TAURI__;
 const { invoke } = window.__TAURI__.core;
 
 
@@ -16,6 +17,7 @@ const { invoke } = window.__TAURI__.core;
 /** @type {HTMLLabelElement} */ let flacLabel;
 
 /** @type {HTMLButtonElement} */ let runButton;
+/** @type {HTMLDivElement} */ let progressBar;
 
 /** @type {HTMLImageElement} */ let settingsButton;
 /** @type {HTMLDivElement} */ let settingsPanel;
@@ -24,8 +26,15 @@ const { invoke } = window.__TAURI__.core;
 /** @type {boolean} */ let batch = false;
 /** @type {string} */ let sep;
 
+async function hookProgress() {
+  await tauriEvent.listen('FFMPEG_PROGRESS', (e) => {
+    progressBar.style.width = `${e.payload}%`;
+  });
+}
+
 async function preload() {
   sep = await invoke("get_separator");
+  hookProgress();
 
   /** @type {boolean} */
   const hasFFmpeg = await invoke("has_ffmpeg");
@@ -55,6 +64,7 @@ function init() {
   flacLabel = flac.parentElement.querySelector("label");
 
   runButton = document.getElementById("run");
+  progressBar = document.getElementById("progress");
 }
 
 /** @param {number} crf @returns {string} */
@@ -102,6 +112,8 @@ async function gatherParams() {
 
   const pairs = inputFiles.map((f, i) => [f, outputFiles[i]]);
   for (const [input, output] of pairs) {
+    progressBar.style.width = "0%";
+
     const status = await invoke("run_ffmpeg", {
       input: input,
       output: output,
