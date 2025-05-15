@@ -119,31 +119,6 @@ h2 {
   outline: none;
 }
 
-#settings-panel {
-  background-color: var(--surface0);
-  position: absolute;
-  width: calc(100% - 2em);
-  height: calc(100% - 2em);
-  padding: 1em;
-  left: 0%;
-  top: -100%;
-  margin: 0;
-  transition: ease 0.2s;
-}
-
-#settings-panel.enable {
-  top: 0%;
-}
-
-#settings-panel>form {
-  width: 80%;
-  height: 60%;
-  margin: auto;
-  background-color: var(--base);
-  border-radius: 1em;
-  padding: 2em;
-}
-
 #action button {
   width: 6em;
   height: 4em;
@@ -178,4 +153,46 @@ h2 {
   left: 0%;
   background: var(--red);
   transition: linear 0.4s;
+}
+
+#settings-panel {
+  background-color: var(--mantle);
+  position: absolute;
+  width: calc(100% - 2em);
+  height: calc(100% - 2em);
+  padding: 1em;
+  left: 0%;
+  top: -100%;
+  margin: 0;
+  transition: ease 0.2s;
+}
+
+#settings-panel.enable {
+  top: 0%;
+}
+
+#settings-panel>form {
+  width: calc(100% - 2em);
+  height: 75%;
+  margin: 0;
+  background-color: var(--base);
+  border-radius: 1em;
+  padding: 1em;
+  gap: 1em;
+}
+
+.checkbox {
+  display: inline-block;
+  background-color: var(--surface0);
+  color: var(--text);
+  font-family: monospace;
+  font-weight: bold;
+  padding: 0.5em 1em;
+  margin: 0 0 auto 0;
+  border-radius: 0.25em;
+  border: 1px solid var(--overlay0);
+}
+
+.checkbox>input, .checkbox>label {
+  cursor: pointer;
 }
