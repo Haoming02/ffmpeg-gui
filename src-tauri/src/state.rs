@@ -1,6 +1,9 @@
 use std::io::Write;
-use std::process::ChildStdin;
+use std::process::{ChildStdin, Command};
 use std::sync::{Arc, Mutex};
+
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 
 #[derive(Default)]
 pub struct ProcessHandle(pub Arc<Mutex<Option<ChildStdin>>>);
@@ -20,4 +23,14 @@ pub fn interrupt_ffmpeg(state: tauri::State<'_, ProcessHandle>) -> bool {
 
     let _ = ffmpeg_stdin.take();
     false
+}
+
+pub fn hide_terminal(mut command: Command) -> Command {
+    #[cfg(target_os = "windows")]
+    {
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    command
 }

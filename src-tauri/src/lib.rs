@@ -12,7 +12,10 @@ fn get_separator() -> char {
 
 #[tauri::command]
 fn has_ffmpeg() -> bool {
-    let output = Command::new("ffmpeg").arg("-version").output();
+    let mut command = Command::new("ffmpeg");
+    command = state::hide_terminal(command);
+    let output = command.arg("-version").output();
+
     match output {
         Ok(_) => true,
         Err(_) => false,

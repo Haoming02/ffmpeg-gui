@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use tauri::Emitter;
 
-use crate::state::ProcessHandle;
+use crate::state::{hide_terminal, ProcessHandle};
 
 fn parse_seconds(timestamp: &str) -> f32 {
     let mut time: f32 = 0.0;
@@ -40,14 +40,14 @@ fn run_single(
     command.arg("-hwaccel").arg("auto");
 
     command.arg("-i").arg(&input);
-    for arg in args {
-        command.arg(arg);
-    }
+    command.args(args);
     command.arg(&output);
 
     command.arg("-progress").arg("pipe:2");
     command.stderr(Stdio::piped());
     command.stdin(Stdio::piped());
+
+    command = hide_terminal(command);
 
     let spawn = command.spawn();
     let mut child = match spawn {
