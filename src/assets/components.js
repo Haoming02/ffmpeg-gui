@@ -1,5 +1,4 @@
 class Components {
-
     /** @type {HTMLInputElement} */
     static inputPath;
     /** @type {HTMLInputElement} */
@@ -64,4 +63,4 @@ class Components {
     }
 }
 
-export { Components }
+export { Components };

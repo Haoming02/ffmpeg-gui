@@ -1,10 +1,7 @@
-/** @type {string[]} */
 const ProResIndex = ["Proxy", "LT", "SQ", "HQ"];
 
-/** @type {string[]} */
 const nvEnc = ["h264", "hevc", "av1"];
 
-/** @type {Array<[number, string]>} */
 const QualityThreshold = [
     [0, "Lossless"],
     [9, "Extreme"],
@@ -14,7 +11,6 @@ const QualityThreshold = [
     [54, "Worst"],
 ];
 
-/** @type {Map<string, string>} */
 const VcodecMapping = {
     H264: "h264",
     HEVC: "hevc",
@@ -23,15 +19,13 @@ const VcodecMapping = {
     ProRes: "prores",
 };
 
-/** @type {Map<string, string>} */
 const AcodecMapping = {
     aac: "aac",
     mp3: "libmp3lame",
     opus: "libopus",
-    flac: "flac"
+    flac: "flac",
 };
 
-/** @type {Map<number, string>} */
 const ErrorCode = {
     s: "Success",
     i: "Input does not Exist...",
@@ -40,4 +34,11 @@ const ErrorCode = {
     f: "Failed to run FFmpeg...",
 };
 
-export { ProResIndex, nvEnc, QualityThreshold, VcodecMapping, AcodecMapping, ErrorCode };
+export {
+    ProResIndex,
+    nvEnc,
+    QualityThreshold,
+    VcodecMapping,
+    AcodecMapping,
+    ErrorCode,
+};

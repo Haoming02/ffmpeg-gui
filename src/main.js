@@ -1,12 +1,12 @@
-import { ProResIndex, nvEnc, QualityThreshold, VcodecMapping, AcodecMapping, ErrorCode } from "./assets/mappings.js"
-import { Components } from "./assets/components.js"
+import { ProResIndex, nvEnc, QualityThreshold, VcodecMapping, AcodecMapping, ErrorCode } from "./assets/mappings.js";
+import { Components } from "./assets/components.js";
 
 const { open: openDialog, message: displayPopup } = window.__TAURI__.dialog;
 const { event: tauriEvent } = window.__TAURI__;
 const { invoke } = window.__TAURI__.core;
 
 /** @type {boolean} */ let batch = false;
-/** @type {string} */ let sep;
+/** @type {string} */ let sep = "";
 
 async function preload() {
   sep = await invoke("get_separator");
@@ -17,7 +17,8 @@ async function preload() {
 
   const warning = document.getElementById("warning");
   warning.removeAttribute("hidden");
-  warning.onclick = () => window.open("https://ffmpeg.org/download.html", "_blank");
+  warning.onclick = () =>
+    window.open("https://ffmpeg.org/download.html", "_blank");
 
   Components.runButton.disabled = true;
 }
@@ -37,8 +38,8 @@ function basename(path) {
 }
 
 async function gatherParams() {
-  /** @type {string[]} */ let inputFiles;
-  /** @type {string[]} */ let outputFiles;
+  /** @type {string[]} */ let inputFiles = [];
+  /** @type {string[]} */ let outputFiles = [];
 
   const input = Components.inputPath.value;
   const output = Components.outputPath.value;
@@ -46,22 +47,24 @@ async function gatherParams() {
   if (!batch) {
     inputFiles = [input];
     outputFiles = [output];
-  }
-  else {
+  } else {
     inputFiles = await invoke("list_files", { input: input });
-    outputFiles = inputFiles.map(file => [output, basename(file)].join(sep));
+    outputFiles = inputFiles.map((file) => [output, basename(file)].join(sep));
   }
 
   let cv = VcodecMapping[Components.vcodec.value];
-  if (Components.gpuToggle.checked && nvEnc.includes(cv))
-    cv += "_nvenc";
+  if (Components.gpuToggle.checked && nvEnc.includes(cv)) cv += "_nvenc";
 
-  const vparam = (cv === "prores") ?
-    ["-profile:v", ProResIndex.indexOf(Components.prores.value)] : ["-crf", Components.crfSlider.value];
+  const vparam =
+    cv === "prores"
+      ? ["-profile:v", ProResIndex.indexOf(Components.prores.value)]
+      : ["-crf", Components.crfSlider.value];
 
   const ca = AcodecMapping[Components.acodec.value];
-  const aparam = (ca === "flac") ?
-    ["-compression_level", Components.flac.value] : ["-b:a", Components.bitrate.value];
+  const aparam =
+    ca === "flac"
+      ? ["-compression_level", Components.flac.value]
+      : ["-b:a", Components.bitrate.value];
 
   const params = ["-c:v", cv, ...vparam, "-c:a", ca, ...aparam];
 
@@ -69,23 +72,36 @@ async function gatherParams() {
   for (const [input, output] of pairs) {
     Components.progressBar.style.width = "0%";
 
-    const status = await invoke("run_ffmpeg", { input: input, output: output, args: params });
+    const status = await invoke("run_ffmpeg", {
+      input: input,
+      output: output,
+      args: params,
+    });
 
     if (status === "s") {
       Components.runButton.classList.add("hidden");
       Components.stopButton.classList.remove("hidden");
-    } else await displayPopup(ErrorCode[status], { title: "FFmpeg GUI", kind: "error" });
+      continue;
+    }
+
+    await displayPopup(ErrorCode[status], {
+      title: "FFmpeg GUI",
+      kind: "error",
+    });
   }
 }
 
 async function tauriEventListeners() {
-  await tauriEvent.listen('FFMPEG_PROGRESS', (e) => {
+  await tauriEvent.listen("FFMPEG_PROGRESS", (e) => {
     Components.progressBar.style.width = `${e.payload}%`;
   });
 
-  await tauriEvent.listen('FFMPEG_STATUS', async (e) => {
+  await tauriEvent.listen("FFMPEG_STATUS", async (e) => {
     if (e.payload !== "s")
-      await displayPopup(ErrorCode[e.payload], { title: "FFmpeg GUI", kind: "error" });
+      await displayPopup(ErrorCode[e.payload], {
+        title: "FFmpeg GUI",
+        kind: "error",
+      });
 
     Components.runButton.classList.remove("hidden");
     Components.stopButton.classList.add("hidden");
@@ -94,7 +110,9 @@ async function tauriEventListeners() {
 }
 
 function htmlEventListeners() {
-  Components.settingsButton.onclick = () => Components.settingsPanel.classList.toggle("enable");
+  Components.settingsButton.onclick = () =>
+    Components.settingsPanel.classList.toggle("enable");
+
   Components.batchToggle.onchange = (e) => {
     batch = e.target.checked;
     Components.inputPath.value = "";
@@ -103,7 +121,7 @@ function htmlEventListeners() {
     const obj = batch ? "folder" : "file";
     Components.inputPath.setAttribute("placeholder", `Path to input ${obj}...`);
     Components.outputPath.setAttribute("placeholder", `Path to output ${obj}...`);
-  }
+  };
 
   Components.vcodec.onchange = (e) => {
     if (e.target.value === "ProRes") {
@@ -113,21 +131,24 @@ function htmlEventListeners() {
       Components.crfSlider.parentElement.classList.remove("hidden");
       Components.prores.parentElement.classList.add("hidden");
     }
-  }
+  };
 
   Components.acodec.onchange = (e) => {
     if (e.target.value === "flac") {
       Components.bitrate.parentElement.classList.add("hidden");
       Components.flac.parentElement.classList.remove("hidden");
-    }
-    else {
+    } else {
       Components.bitrate.parentElement.classList.remove("hidden");
       Components.flac.parentElement.classList.add("hidden");
     }
-  }
+  };
 
-  Components.crfSlider.oninput = (e) => { Components.crfLabel.innerHTML = qualityLabel(e.target.value); }
-  Components.flac.oninput = (e) => { Components.flacLabel.innerHTML = `Compression<br>${e.target.value}`; }
+  Components.crfSlider.oninput = (e) => {
+    Components.crfLabel.innerHTML = qualityLabel(e.target.value);
+  };
+  Components.flac.oninput = (e) => {
+    Components.flacLabel.innerHTML = `Compression<br>${e.target.value}`;
+  };
 
   Components.inputPath.addEventListener("dblclick", async () => {
     const path = await openDialog({ directory: batch, multiple: false });
@@ -146,13 +167,13 @@ function htmlEventListeners() {
     e.preventDefault();
     gatherParams();
     return false;
-  }
+  };
 
   Components.stopButton.onclick = async (e) => {
     e.preventDefault();
     await invoke("interrupt_ffmpeg");
     return false;
-  }
+  };
 }
 
 window.addEventListener("DOMContentLoaded", () => {
