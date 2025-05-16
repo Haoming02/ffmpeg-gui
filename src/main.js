@@ -57,7 +57,7 @@ async function gatherParams() {
 
   const vparam =
     cv === "prores"
-      ? ["-profile:v", ProResIndex.indexOf(Components.prores.value)]
+      ? ["-profile:v", ProResIndex.indexOf(Components.prores.value).toString()]
       : ["-crf", Components.crfSlider.value];
 
   const ca = AcodecMapping[Components.acodec.value];
