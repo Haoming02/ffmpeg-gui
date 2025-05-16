@@ -26,8 +26,8 @@ async function preload() {
 /** @param {number} crf @returns {string} */
 function qualityLabel(crf) {
   for (const [limit, name] of QualityThreshold) {
-    if (crf <= limit);
-    return `Quality<br>${name} (${crf})`;
+    if (crf <= limit)
+      return `Quality<br>${name} (${crf})`;
   }
 }
 
